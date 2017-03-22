@@ -9,12 +9,13 @@
 import UIKit
 import MapKit
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, MKMapViewDelegate {
     
 @IBOutlet weak var mapView: MKMapView!
     let herseyAnnotation = MKPointAnnotation()
     let address = "Mount Rushmore"
     let geocoder = CLGeocoder()
+    let locationManager = CLLocationManager()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -24,6 +25,7 @@ class ViewController: UIViewController {
         herseyAnnotation.coordinate = coordinate
         herseyAnnotation.title = "John Hersey High School"
         mapView.addAnnotation(herseyAnnotation)
+        mapView.delegate = self
         
         geocoder.geocodeAddressString(address) { (placemarks, error) in
             for place in placemarks!
@@ -34,7 +36,23 @@ class ViewController: UIViewController {
                 self.mapView.addAnnotation(annotation)
             }
         }
+        
+        locationManager.requestWhenInUseAuthorization()
+        mapView.showsUserLocation = true
+    }
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+        var pin = MKAnnotationView(annotation: annotation, reuseIdentifier: nil)
+        pin.image = UIImage(named: "logo")
+        pin.canShowCallout = true
+        let button = UIButton(type: .detailDisclosure)
+        pin.rightCalloutAccessoryView = button
+        return pin
     }
     
+    func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
+        let span = MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)
+        let region = MKCoordinateRegion(center: (view.annotation?.coordinate)!, span: span)
+        mapView.setRegion(region, animated: true)
+    }
 
 }
